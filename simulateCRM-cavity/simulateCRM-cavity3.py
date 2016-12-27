@@ -134,28 +134,15 @@ def solveCavity(K, sig_K, m, sig_m, mu, sig, gamma):
     print(err)
     
     return [phi_N, phi_R, avg_N, avg_R, q_N, q_R, nu, chi]
-    
-    #print(phi_N)
-    #print(phi_R)
-    #print(nu)
-    #print(chi)
-    #print(avg_N)
-    #print(avg_R)
-    #\print(q_N)
-    #print(q_R)
-    
+      
       
     
 
 
-
 numTrials=50
     
-
-
 S=100;
 M=200;
-
 gamma = M/S;
     
 sigma=1.;
@@ -167,13 +154,8 @@ sigma_m=0.5;
 
 
 
-
-
 cav_par = solveCavity(mu_K, sigma_K, mu_m, sigma_m, mu, sigma, gamma)
 print(cav_par)
-
-
-
 
 #Cutoff on accuracy
 epsilon=10**-4

@@ -23,8 +23,7 @@ def Draw_random_parameters(S, M, sigma, mu, mu_K, sigma_K, mu_m, sigma_m):
     
     #Draw minimum coefficient
     m=np.random.normal(mu_m, sigma_m, S)
-    
-    
+        
     return [c,K,m]
 
 
@@ -133,7 +132,7 @@ def solveCavity(K, sig_K, m, sig_m, mu, sig, gamma):
     print('convergence error:') 
     print(err)
     
-    return [phi_N, phi_R, avg_N, avg_R, q_N, q_R, nu, chi]
+    return [phi_N, phi_R, avg_N, avg_R, q_N, q_R, nu, chi, Delta_N, Delta_R]
     
     #print(phi_N)
     #print(phi_R)
@@ -155,7 +154,7 @@ numTrials=0
 #M=200.;
 M = 20;
 S = 20;
-numVary = 15
+numVary = 30
 
 gamma = 1.;
 
@@ -169,166 +168,115 @@ sigma_m=1.;
 
 #Cutoff on accuracy
 epsilon=10**-4
-
-numInit = 3;
-
-dataSet = np.zeros((6, numTrials,numInit,numVary))
-
-cav_parSet = np.zeros((6, numVary))
+numInit = 10;
+numPar = 10;
+cav_parSet = np.zeros((numPar, numVary, numInit))
 
 for gcnt in range(0, numVary):
     sigma = sigmaSet[gcnt];
-    cav_par = solveCavity(mu_K, sigma_K, mu_m, sigma_m, mu, sigma, gamma)
-    print(cav_par)
     
-    for pcnt in range(0,6):
-        cav_parSet[pcnt,gcnt] = cav_par[pcnt]
-
- 
-    for cnt in range(0, numTrials):
-        print([cnt+1,numTrials])
+    for icnt in range(0, numInit):
+        cav_par = solveCavity(mu_K, sigma_K, mu_m, sigma_m, mu, sigma, gamma)
+        #print(cav_par)
+    
+        for pcnt in range(0,numPar):
+            cav_parSet[pcnt,gcnt,icnt] = cav_par[pcnt]
+    
         
         
-        #Create coefficients and append cuttoff
-        par=Draw_random_parameters(S, M, sigma, mu, mu_K, sigma_K, mu_m, sigma_m)
-        par.append(epsilon)
-        
-        
-        for icnt in range(0, numInit):
-            #Set initial condition
-            R_ini=np.random.rand(M);
-            N_ini=np.random.rand(S);
-            
-            t0=0;
-            t1=10**4
-            
-            Y_ini=np.concatenate((R_ini,N_ini))
-                   
-            t=np.linspace(t0,t1, num=1000)#
-            Y= odeint(Get_vector_field_CRM,Y_ini,t,args=(par,),Dfun=Get_Jacobian_CRM,atol=10**-3)
-            
-            
-            # Calculate the various cavity quantities
-            
-            R=Y[-1,0:M]
-            N=Y[-1,M:M+S]
-            
-            N[N<10**-3]=0
-            R[R<10**-3]=0
-            
-            N0=N[np.nonzero(N)]
-            R0=R[np.nonzero(R)]
-            
-            S_star=N0.size
-            M_star=R0.size
-            
-            S_star=S_star/1.
-            M_star=M_star/1.
-            
-            phi_N=S_star/S
-            phi_R=M_star/M
-            
-            N_avg=np.mean(N)
-            R_avg=np.mean(R)
-            
-            q_N=np.mean(N**2)
-            q_R=np.mean(R**2)
-        
-        
-        
-        
-            dataSet[0,cnt,icnt,gcnt] = phi_N
-            dataSet[1,cnt,icnt,gcnt] = phi_R
-            dataSet[2,cnt,icnt,gcnt] = N_avg
-            dataSet[3,cnt,icnt,gcnt] = R_avg
-        
-            dataSet[4,cnt,icnt,gcnt] = q_N
-            dataSet[5,cnt,icnt,gcnt] = q_R
-
-#phi_N_avg = np.mean(dataSet[0,:])
-#q_N_med = np.median(dataSet[1,:])
-#print(phi_N_avg)
-#print(q_N_med)
-
-
-#from tempfile import TemporaryFile
-#outfile = TemporaryFile()
-#np.save(outfile, cav_par, dataSet)
-#outfile.seek(0) # Only needed here to simulate closing & reopening file
-#>>> np.load(outfile)
 
 plt.figure(1)
 
 plt.title('phi_S')
-plt.plot(sigmaSet, cav_parSet[0,:], 'ro')
-#plt.errorbar(x, y, wxerr=0.2, yerr=0.4)
-#plt.errorbar([0,1], [np.mean(dataSet[0,:]),np.mean(dataSet[1,:])], [2.*np.sqrt(1/numTrials)*np.std(dataSet[0,:]),2.*np.sqrt(1/numTrials)*np.std(dataSet[1,:])],fmt = 'o')
-#plt.plot([0,1], [np.mean(dataSet[0,:]),np.mean(dataSet[1,:])], 'r+')
+
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[0,:,icnt], 'ro')
+
 plt.xlabel('sigma')
 plt.show()
-
 
 
 
 plt.figure(2)
 
 plt.title('phi_M')
-plt.plot(sigmaSet, cav_parSet[1,:], 'ro')
-#plt.errorbar(x, y, wxerr=0.2, yerr=0.4)
-#plt.errorbar([0,1], [np.mean(dataSet[0,:]),np.mean(dataSet[1,:])], [2.*np.sqrt(1/numTrials)*np.std(dataSet[0,:]),2.*np.sqrt(1/numTrials)*np.std(dataSet[1,:])],fmt = 'o')
-#plt.plot([0,1], [np.mean(dataSet[0,:]),np.mean(dataSet[1,:])], 'r+')
+
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[1,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
+
+
+plt.figure(3)
+plt.title('avg_N')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[2,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
+
+
+
+plt.figure(4)
+plt.title('avg_R')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[3,:,icnt], 'ro')
 plt.xlabel('sigma')
 plt.show()
 
 
 
 
-#plt.figure(2)
-#w
-#plt.title('<N>, <R>')
-#
-#plt.plot([2,3], [cav_par[2],cav_par[3]], 'ro')
 
-##plt.plot([2,3], [np.median(dataSet[2,:]),np.median(dataSet[3,:])], 'r+')
-#plt.errorbar([2,3], [np.median(dataSet[2,:]),np.median(dataSet[3,:])], [2.*np.sqrt(1/numTrials)*np.std(dataSet[2,:]),2.*np.sqrt(1/numTrials)*np.std(dataSet[3,:])],fmt = 'o')
-#
-#
-#
-#plt.axis([1, 4, 0, 1.5])
-#
-#plt.show()
-#
-#
-#
-#plt.figure(3)
-#
-#
-#plt.title('q_N, q_R')
-#
-#plt.plot([4,5], [cav_par[4],cav_par[5]], 'ro')
-#
-#plt.errorbar([4,5], [np.median(dataSet[4,:]),np.median(dataSet[5,:])], [2.*np.sqrt(1/numTrials)*np.std(dataSet[4,:]),2.*np.sqrt(1/numTrials)*np.std(dataSet[5,:])],fmt = 'o')
-#
-##plt.plot([4,5], [np.median(dataSet[4,:]),np.median(dataSet[5,:])], 'r+')
-#
-#
-#plt.axis([3, 6, 0, 1.5])
-#
-#plt.show()
-#
-#
+plt.figure(5)
+plt.title('q_N')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[4,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
 
-
-#plt.plot([1,2,3,4], [1,4,9,16], 'ro')
+plt.figure(6)
+plt.title('q_R')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[5,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
 
 
 
-#Plot figure
-#plt.figure(1)
-#plt.semilogy(t,Y[:,M:M+S])
-#plt.show()
-#
-#
-#plt.figure(2)
-#plt.semilogy(t,Y[:,0:M])
-#plt.show()
+
+plt.figure(7)
+plt.title('nu')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[6,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
+
+plt.figure(8)
+plt.title('chi')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[7,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
+
+
+
+plt.figure(9)
+plt.title('Delta_N')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[8,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
+
+plt.figure(10)
+plt.title('Delta_R')
+for icnt in range(0, numInit):
+    plt.plot(sigmaSet, cav_parSet[9,:,icnt], 'ro')
+plt.xlabel('sigma')
+plt.show()
+
+
+
+
+
+
+
