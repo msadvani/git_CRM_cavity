@@ -192,11 +192,12 @@ numVary = 15
 gamma = M/S;
 
 sigmaSet=np.linspace(.1,8,numVary);
-mu=1.;
-mu_K=1.;
-mu_m=1.;
-sigma_K=1.;
-sigma_m=1.;
+
+mu=.7;
+mu_K=.9;
+mu_m=.85;
+sigma_K=.5;
+sigma_m=.9;
 
 
 #Cutoff on accuracy
@@ -205,7 +206,7 @@ numInit = 10;
 numPar = 12;
 cav_parSet = np.zeros((numPar, numVary, numInit))
 
-numTrials_LV = 2;
+numTrials_LV = 25;
 numInit_LV = 1; #see how much difference initialization makes. What sort of variety of solutions is there... 
 
 dataSet = np.zeros((6,numTrials_LV,numInit_LV,numVary));
@@ -307,135 +308,37 @@ for fcnt in range(0, numFig):
     plt.title(titleSet[fcnt])
     for icnt in range(0, numInit):    
         plt.plot(sigmaSet, cav_parSet_converged[fcnt,:,icnt], 'ro')
+        
+    for icnt in range(0, numInit_LV):
+        for cnt in range(0, numTrials_LV):
+            plt.plot(sigmaSet, dataSet[fcnt,cnt,icnt,:], 'b+')
+        
     
+for fcnt in range(numFig, 2*numFig):
+    rcnt = fcnt-numFig;
+    plt.figure(fcnt)
+    plt.title(titleSet[rcnt])
+    for icnt in range(0, numInit):    
+        plt.plot(sigmaSet, cav_parSet[rcnt,:,icnt], 'ro')    
 
-    
-#backup/save data...
-
-
-
-#old plotting code...
-
-#
-#plt.figure(1)
-#plt.title('phi_S')
-#
-#for icnt in range(0, numInit):
-#    
-#        plt.plot(sigmaSet, cav_parSet[0,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[0,cnt,icnt,:], 'b+')
-#    
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#plt.figure(2)
-#plt.title('phi_M')
-#
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[1,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[1,cnt,icnt,:], 'b+')    
-#
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#plt.figure(3)
-#plt.title('avg_N')
-#for icnt in range(0, numInit):
-#        plt.plot(sigmaSet, cav_parSet[2,:,icnt], 'ro')
-#    
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[2,cnt,icnt,:], 'b+')
-#        
-##plt.axis([0,max(sigmaSet),-.01,10.0])
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#plt.figure(4)
-#plt.title('avg_R')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[3,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[3,cnt,icnt,:], 'b+')
-#        
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#
-#
-#plt.figure(5)
-#plt.title('q_N')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[4,:,icnt], 'ro')
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[4,cnt,icnt,:], 'b+')
-#    
-#plt.xlabel('sigma')
-#plt.show()
-#
-#plt.figure(6)
-#plt.title('q_R')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[5,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[5,cnt,icnt,:], 'b+')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#
-#plt.figure(7)
-#plt.title('nu')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[6,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#plt.figure(8)
-#plt.title('chi')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[7,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#plt.figure(9)
-#plt.title('Delta_N')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[8,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#plt.figure(10)
-#plt.title('Delta_R')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[9,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
+        
+        
+  
+paramData = [mu_K, sigma_K, mu_m, sigma_m, mu,gamma]
+        
 
 
+from tempfile import TemporaryFile
+out_cav2 = TemporaryFile()
+out_ode2 = TemporaryFile()
 
+np.savez(out_cav2, sigmaSet, cav_parSet_converged, paramData)
+np.savez(out_ode2, sigmaSet, paramData)
 
+out_cav2.seek(0)
 
-
-
+#check recovery:    
+npzfile = np.load(out_cav2)
+npzfile.files
+npzfile['arr_1']
+npzfile['arr_2']

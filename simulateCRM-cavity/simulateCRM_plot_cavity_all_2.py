@@ -192,12 +192,17 @@ numVary = 15
 gamma = M/S;
 
 sigmaSet=np.linspace(.1,8,numVary);
-mu=1.;
-mu_K=1.;
-mu_m=1.;
-sigma_K=1.;
-sigma_m=1.;
+#mu=1.;
+#mu_K=1.;
+#mu_m=1.;
+#sigma_K=1.;
+#sigma_m=1.;
 
+mu=.7;
+mu_K=.9;
+mu_m=.85;
+sigma_K=.5;
+sigma_m=.9;
 
 #Cutoff on accuracy
 epsilon=10**-4
@@ -205,8 +210,8 @@ numInit = 10;
 numPar = 12;
 cav_parSet = np.zeros((numPar, numVary, numInit))
 
-numTrials_LV = 2;
-numInit_LV = 1; #see how much difference initialization makes. What sort of variety of solutions is there... 
+numTrials_LV = 0;
+numInit_LV = 0; #see how much difference initialization makes. What sort of variety of solutions is there... 
 
 dataSet = np.zeros((6,numTrials_LV,numInit_LV,numVary));
 
@@ -291,6 +296,7 @@ cav_parSet_converged = copy.copy(cav_parSet);  #removing non-converging cases
 cav_parSet_converged[0:9,cav_parSet[10,:,:]>max_cav_err] = ['nan'];
     
 titleSet = ['phi_S', 'phi_M', 'avg_N', 'avg_R', 'q_N', 'q_R']
+titleSetConv = ['phi_S converged', 'phi_M converged', 'avg_N converged', 'avg_R converged', 'q_N converged', 'q_R converged']
 numFig = np.size(titleSet);
 #for fcnt in range(0, numFig):
 #    plt.figure(fcnt)
@@ -304,138 +310,33 @@ numFig = np.size(titleSet);
         
 for fcnt in range(0, numFig):
     plt.figure(fcnt)
-    plt.title(titleSet[fcnt])
+    plt.title(titleSetConv[fcnt])
     for icnt in range(0, numInit):    
         plt.plot(sigmaSet, cav_parSet_converged[fcnt,:,icnt], 'ro')
     
-
+for fcnt in range(numFig, 2*numFig):
+    rcnt = fcnt-numFig;
+    plt.figure(fcnt)
+    plt.title(titleSet[rcnt])
+    for icnt in range(0, numInit):    
+        plt.plot(sigmaSet, cav_parSet[rcnt,:,icnt], 'ro')
     
-#backup/save data...
+        
+paramData = [mu_K, sigma_K, mu_m, sigma_m, mu,gamma]        
+
+from tempfile import TemporaryFile
+out_cav_2 = TemporaryFile()
+np.savez(out_cav_2, sigmaSet, cav_parSet_converged, paramData)
+out_cav_2.seek(0)
 
 
+print('version 2')
 
-#old plotting code...
-
-#
-#plt.figure(1)
-#plt.title('phi_S')
-#
-#for icnt in range(0, numInit):
-#    
-#        plt.plot(sigmaSet, cav_parSet[0,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[0,cnt,icnt,:], 'b+')
-#    
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#plt.figure(2)
-#plt.title('phi_M')
-#
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[1,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[1,cnt,icnt,:], 'b+')    
-#
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#plt.figure(3)
-#plt.title('avg_N')
-#for icnt in range(0, numInit):
-#        plt.plot(sigmaSet, cav_parSet[2,:,icnt], 'ro')
-#    
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[2,cnt,icnt,:], 'b+')
-#        
-##plt.axis([0,max(sigmaSet),-.01,10.0])
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#plt.figure(4)
-#plt.title('avg_R')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[3,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[3,cnt,icnt,:], 'b+')
-#        
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#
-#
-#plt.figure(5)
-#plt.title('q_N')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[4,:,icnt], 'ro')
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[4,cnt,icnt,:], 'b+')
-#    
-#plt.xlabel('sigma')
-#plt.show()
-#
-#plt.figure(6)
-#plt.title('q_R')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[5,:,icnt], 'ro')
-#    
-#for icnt in range(0, numInit_LV):
-#    for cnt in range(0, numTrials_LV):
-#        plt.plot(sigmaSet, dataSet[5,cnt,icnt,:], 'b+')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#
-#plt.figure(7)
-#plt.title('nu')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[6,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#plt.figure(8)
-#plt.title('chi')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[7,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#
-#
-#plt.figure(9)
-#plt.title('Delta_N')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[8,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-#
-#plt.figure(10)
-#plt.title('Delta_R')
-#for icnt in range(0, numInit):
-#    plt.plot(sigmaSet, cav_parSet[9,:,icnt], 'ro')
-#plt.xlabel('sigma')
-#plt.show()
-
-
-
-
+#check recovery:    
+npzfile = np.load(out_cav_2)
+npzfile.files
+npzfile['arr_1']
+npzfile['arr_2']
 
 
 
