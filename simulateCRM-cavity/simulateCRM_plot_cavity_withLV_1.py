@@ -7,6 +7,8 @@ from scipy.integrate import odeint
 from scipy.integrate import ode
 from scipy.integrate import quad
 
+import scipy.io as sio
+
 
 def Draw_random_parameters(S, M, sigma, mu, mu_K, sigma_K, mu_m, sigma_m):
     #This function draws c, m, K for simulating an ecosystem
@@ -54,32 +56,25 @@ def Get_vector_field_CRM(Y,t,par):
     return output_vector
     
     
-def Get_Jacobian_CRM(Y,t,par):
-    
+def Get_Jacobian_CRM(Y,t,par):    
     #unpack parameters
     [c,K,m,epsilon]=par
     M=len(K)
     S=len(m)
-    
-    
-    
+            
     #unpack resource abundances and species abundance
     R=Y[0:M]
     R[np.where(R<epsilon)]=0;
     N=Y[M:]
     N[np.where(N<epsilon)]=0;    
     
-    Jac=np.zeros((M+S,M+S))
-    
- 
+    Jac=np.zeros((M+S,M+S))     
     #Calculate dR_beta/dR_\alpha
     
-    Jac[0:M,0:M]=np.diag(K-2*R-N.dot(c))
-     
+    Jac[0:M,0:M]=np.diag(K-2*R-N.dot(c))     
     #Calculate dR_beta/dN_j
     
-    Jac[0:M,M:M+S]=np.einsum('ia,a->ai',c,R)
-    
+    Jac[0:M,M:M+S]=np.einsum('ia,a->ai',c,R)    
     #Calculate dN_i/dR_beta
     Jac[M:M+S,0:M]=np.einsum('ib, i->ib',c,N)
     
@@ -170,16 +165,6 @@ def solveCavity(K, sig_K, m, sig_m, mu, sig, gamma):
     
     return [phi_N, phi_R, avg_N, avg_R, q_N, q_R, nu, chi, Delta_N, Delta_R, err, err_RS]
     
-    #print(phi_N)
-    #print(phi_R)
-    #print(nu)
-    #print(chi)
-    #print(avg_N)
-    #print(avg_R)
-    #print(q_N)
-    #print(q_R)
-    
-      
     
 
 

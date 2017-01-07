@@ -187,9 +187,9 @@ def solveCavity(K, sig_K, m, sig_m, mu, sig, gamma):
 
 
 #M=200.;
-M = 20.;
-S = 20.;
-numVary = 15
+M = 50.;
+S = 50.;
+numVary = 5 #15
 
 gamma = M/S;
 
@@ -208,10 +208,13 @@ numInit = 10;
 numPar = 12;
 cav_parSet = np.zeros((numPar, numVary, numInit))
 
-numTrials_LV = 25;
-numInit_LV = 1; #see how much difference initialization makes. What sort of variety of solutions is there... 
+numTrials_LV = 5; #20
 
-dataSet = np.zeros((6,numTrials_LV,numInit_LV,numVary));
+
+dataLV_order_params = np.zeros((6,numTrials_LV,numVary));
+N_dataLV = np.zeros((S, numTrials_LV,numVary));
+R_dataLV = np.zeros((M, numTrials_LV,numVary));
+
 
 
 for gcnt in range(0, numVary):
@@ -234,55 +237,52 @@ for gcnt in range(0, numVary):
         par=Draw_random_parameters(S, M, sigma, mu, mu_K, sigma_K, mu_m, sigma_m)
         par.append(epsilon)
     
-        for icnt in range(0, numInit_LV):
-            #Set initial condition
-            R_ini=np.random.rand(M);
-            N_ini=np.random.rand(S);
-            
-            t0=0;
-            t1=10**4
-            
-            Y_ini=np.concatenate((R_ini,N_ini))
-                   
-            t=np.linspace(t0,t1, num=1000)#
-            Y= odeint(Get_vector_field_CRM,Y_ini,t,args=(par,),Dfun=Get_Jacobian_CRM,atol=10**-3)
-            
-            # Calculate the various cavity quantities
-            R=Y[-1,0:M]
-            N=Y[-1,M:M+S]
-            
-            N[N<10**-3]=0
-            R[R<10**-3]=0
-            
-            N0=N[np.nonzero(N)]
-            R0=R[np.nonzero(R)]
-            
-            S_star=N0.size
-            M_star=R0.size
-            
-            S_star=S_star/1.
-            M_star=M_star/1.
-            
-            phi_N=S_star/S
-            phi_R=M_star/M
-            
-            N_avg=np.mean(N)
-            R_avg=np.mean(R)
-            
-            q_N=np.mean(N**2)
-            q_R=np.mean(R**2)
+        R_ini=np.random.rand(M);
+        N_ini=np.random.rand(S);
         
+        t0=0;
+        t1=10**4
         
+        Y_ini=np.concatenate((R_ini,N_ini))
+               
+        t=np.linspace(t0,t1, num=1000)#
+        Y= odeint(Get_vector_field_CRM,Y_ini,t,args=(par,),Dfun=Get_Jacobian_CRM,atol=10**-3)
         
+        # Calculate the various cavity quantities
+        R=Y[-1,0:M]
+        N=Y[-1,M:M+S]
         
-            dataSet[0,cnt,icnt,gcnt] = phi_N
-            dataSet[1,cnt,icnt,gcnt] = phi_R
-            dataSet[2,cnt,icnt,gcnt] = N_avg
-            dataSet[3,cnt,icnt,gcnt] = R_avg
+        N[N<10**-3]=0
+        R[R<10**-3]=0
         
-            dataSet[4,cnt,icnt,gcnt] = q_N
-            dataSet[5,cnt,icnt,gcnt] = q_R
+        N0=N[np.nonzero(N)]
+        R0=R[np.nonzero(R)]
+        
+        S_star=N0.size
+        M_star=R0.size
+        
+        S_star=S_star/1.
+        M_star=M_star/1.
+        
+        phi_N=S_star/S
+        phi_R=M_star/M
+        
+        N_avg=np.mean(N)
+        R_avg=np.mean(R)
+        
+        q_N=np.mean(N**2)
+        q_R=np.mean(R**2)
+    
+        N_dataLV[:,cnt,gcnt] = N;
+        R_dataLV[:,cnt,gcnt] = R;
+    
 
+        dataLV_order_params[0,cnt,gcnt] = phi_N
+        dataLV_order_params[1,cnt,gcnt] = phi_R
+        dataLV_order_params[2,cnt,gcnt] = N_avg
+        dataLV_order_params[3,cnt,gcnt] = R_avg
+        dataLV_order_params[4,cnt,gcnt] = q_N
+        dataLV_order_params[5,cnt,gcnt] = q_R
 
     
 max_cav_err = .01;
@@ -311,9 +311,8 @@ for fcnt in range(0, numFig):
     for icnt in range(0, numInit):    
         plt.plot(sigmaSet, cav_parSet_converged[fcnt,:,icnt], 'ro')
         
-    for icnt in range(0, numInit_LV):
-        for cnt in range(0, numTrials_LV):
-            plt.plot(sigmaSet, dataSet[fcnt,cnt,icnt,:], 'b+')
+    for cnt in range(0, numTrials_LV):
+        plt.plot(sigmaSet, dataLV_order_params[fcnt,cnt,:], 'b+')
         
     
 for fcnt in range(numFig, 2*numFig):
@@ -324,9 +323,15 @@ for fcnt in range(numFig, 2*numFig):
         plt.plot(sigmaSet, cav_parSet[rcnt,:,icnt], 'ro')    
 
         
-        
   
+        
 paramData = [mu_K, sigma_K, mu_m, sigma_m, mu,gamma]
         
 
-sio.savemat('prac_vec.mat',{'sigmaSet':sigmaSet,'cav_parSet_converged':cav_parSet_converged, 'paramData':paramData, 'dataSet':dataSet,'cav_parSet':cav_parSet})
+
+sio.savemat('LV_data2.mat',{'sigmaSet':sigmaSet,'cav_parSet_converged':cav_parSet_converged, 'paramData':paramData, 'cav_parSet':cav_parSet, 'dataLV_order_params':dataLV_order_params, 'N_dataLV':N_dataLV, 'R_dataLV':R_dataLV,'M':M,'S':S})
+
+LV_data = sio.loadmat('LV_data2.mat')
+
+
+LV_data['cav_parSet_converged']
